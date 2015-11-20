@@ -1,4 +1,5 @@
 from pattern import *
+from train import *
 
 def testPatternTransformer():
     def testAll():
@@ -47,5 +48,30 @@ def testPattern():
     pat = Pattern(('T by SUBT', 1))
     assert pat.findSubtasks([candq])['herb'] == 1
 
+def testTSUBTAndQueryToPattern():
+    topat = TSUBTAndQueryToPattern()
+    query = 'losing much weights by herbs'
+    tsubt = ['lose weight', ['sport', 'herb']]
+
+    topat.mc = MongoClient()
+    topat.db = topat.mc['test']
+    collectionName = 'test'
+    topat.col = topat.db[collectionName]
+
+    topat.db[collectionName].drop()
+
+    record = json.loads('{"pattern": "VO1 by SN2", "4search": "lose weight herb", "query": "losing much weights by herbs", "label": {"SN2": "herb", "VO1": "lose much weight"}}')
+
+    topat.db[collectionName].insert_one(record)
+    topat.db[collectionName].create_index([('4search', 'text')])
+
+    queries = topat.findQueriesByTSUBT(tsubt)
+    pattern = topat.transformToPatterns(tsubt, queries)[0]
+
+    assert pattern['pattern'] == 'T by SUBT'
+    assert pattern['label']['T'] == 'lose much weight'
+    assert pattern['label']['SUBT'] == 'herb'
+
 testPatternTransformer()
 testPattern()
+testTSUBTAndQueryToPattern()
