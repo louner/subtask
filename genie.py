@@ -1,6 +1,8 @@
 import random
 import os
-from processData import mergeSortQuery
+from processData import *
+from parameter import *
+import time
 
 def testMergeSort():
     for i in range(16):
@@ -8,4 +10,3 @@ def testMergeSort():
         open('./tmp/'+str(i), 'w').write(str(a)+'\n'+str(a+1)+'\n')
 
     mergeSortQuery('./tmp/')
-
