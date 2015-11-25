@@ -6,6 +6,25 @@ import pdb
 
 from parameter import *
 
+# training starts here
+def extractPatterns():
+    topat = TSUBTAndQueryToPattern()
+    ftsubt = open(TASKSUBTASKFILE, 'r')
+    ferr = open('/tmp/extractPatterns-err', 'w')
+
+    for line in ftsubt:
+        tsubt = json.loads(line)
+        try:
+            queries = topat.findQueriesByTSUBT(tsubt)
+            patterns = topat.transformToPatterns(tsubt, queries)
+        except:
+            ferr.write(line)
+            continue
+
+        for pattern in patterns:
+            print '{}\t{}\t{}'.format(pattern['pattern'], pattern['T'], pattern['SUBT'])
+
+# transform a task-subtask pair and a query to a pttern that knows how to match and extract subtasks from another query
 class TSUBTAndQueryToPattern:
     def __init__(self):
         mc = MongoClient()
@@ -13,14 +32,16 @@ class TSUBTAndQueryToPattern:
         self.col = self.db['candQ']
         self.ferr = open('/tmp/{}'.format(self.__class__), 'w')
 
+    # given a task-subtask pair, find promising queries that may be transformed to patterns
+    # promising queries are queries which contain both task terms and subtask term
     #@profile
     def findQueriesByTSUBT(self, tsubt):
         # task contains only V and O
         # subtasks are terms, V or O, both stemmed
         task, subtasks = tsubt
         # subtasks are terms, V or O, both stemmed
-        # candQ: {pattern: '...', label: {...}, query: '...', '4search': '...'}
-        # text index in 4search, which is like 'lose weight eat fruit'(from query 'losing lots of  weight by eating fruit')
+        # candQ: {pattern: 'VO1 by VO2', label: {'VO1': 'lose lots of weight', 'VO2': 'eat fruit'}, query: 'losing lots of weight by eating fruit', '4search': '...'}
+        # text index in 4search, which is like 'lose weight eat fruit'(from query 'losing lots of weight by eating fruit')
         # words in label and 4search stemmed
         query = '\"{}\" {}'.format(task, ' '.join(subtasks))
 
@@ -28,6 +49,9 @@ class TSUBTAndQueryToPattern:
         candQueries = [result['obj'] for result in results['results']]
         return candQueries
 
+    
+    # transform a task-subtask pair and promising queries to ptterns
+    # for each promising query, replace label that contains task/subtask with new label T/SUBT
     #@profile
     def transformToPatterns(self, tsubt, queries):
         task, subtasks = tsubt
@@ -76,21 +100,3 @@ class TSUBTAndQueryToPattern:
         query['label'][newLabel] = substring
         query['pattern'] = query['pattern'].replace(label, newLabel)
         return query
-
-def extractPatterns():
-    topat = TSUBTAndQueryToPattern()
-    ftsubt = open(TASKSUBTASKFILE, 'r')
-    ferr = open('/tmp/extractPatterns-err', 'w')
-
-    for line in ftsubt:
-        tsubt = json.loads(line)
-        try:
-            queries = topat.findQueriesByTSUBT(tsubt)
-            patterns = topat.transformToPatterns(tsubt, queries)
-        except:
-            ferr.write(line)
-            continue
-
-        for pattern in patterns:
-            print '{}\t{}\t{}'.format(pattern['pattern'], pattern['T'], pattern['SUBT'])
-#extractPatterns()
