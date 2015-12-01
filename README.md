@@ -1,21 +1,27 @@
 pattern.py
+
 存放所有與pattern相關的類別
 
 PatternTransformer
+
 這個類別負責將一般的query轉成類別Pattern所需要的資料。
 主要是利用Stanford parser取出POS與depdencey，再將這些label與其所代表的substring轉化成Pattern特有的label。
 因為此種Pattern僅從query轉換，不俱備任務與子任務的標籤，因此尚不俱備辨識與提取子任務的能力。
 
 Patterns
+
 Pattern的集合，負責用其所含的Pattern instances把一群queries中的子任務找出來。
 
 Pattern
+
 在收到一份query時，可以判斷該query是否符合自己的語法，若符合則可以將此query中可能是子任務的段落提取出來。
 
 
 train.py
+
 在queries已經在資料庫中，任務-子任務訓練資料以檔案型式準備好的前提下，找到所有同時包含某項任務與其子任務的queries，並將其轉為Pattern。
 queries需先經過PatternTransformer轉換成Pattern，再利用訓練資料標示出Pattern的任務、子任務標籤。
 
 TSUBTAndQueryToPattern
+
 被給予一組任務-子任務後，將queries裡同時包含兩者的queries找回來，一一加入任務（T）與子任務（SUBT）的標籤，讓其俱備辨識與提取的能力。
