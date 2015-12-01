@@ -1,5 +1,4 @@
 pattern.py
-
 存放所有與pattern相關的類別
 
 PatternTransformer
